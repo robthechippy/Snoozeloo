@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Snoozeloo</string>
+    <string name="emptyAlarms">It\'s empty! Add the first alarm so you don\'t miss an important moment!</string>
+    <string name="yourAlarms">Your Alarms</string>
+    <string name="add_alarm">Add alarm</string>
+    <string name="close">Cancel</string>
+    <string name="save">Save</string>
+    <string name="alarm_name">Alarm name</string>
+    <string name="stop">Turn Off</string>
+</resources>

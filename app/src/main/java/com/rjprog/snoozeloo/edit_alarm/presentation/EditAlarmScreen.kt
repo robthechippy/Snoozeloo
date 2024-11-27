@@ -107,7 +107,7 @@ fun EditAlarmScreen(
                                     if (screenState.value.deleteEnabled) Color.Red else Color(
                                         0xFFE6E6E6
                                     )
-                                ) // TODO: Replace with enabled, disabled color
+                                )
                                 .height(36.dp)
                                 .width(36.dp),
                             enabled = screenState.value.deleteEnabled

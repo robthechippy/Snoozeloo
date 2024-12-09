@@ -25,7 +25,6 @@ class BootCompletedReceiver : BroadcastReceiver(), KoinComponent {
                         val alarmList = repository.getAllAlarms()
                             .first()
                             .filter { it.enabled }
-                        println("Working?")
                         println(alarmList)
                         alarmList.forEach { alarm ->
                             println(alarm.title)
@@ -33,7 +32,6 @@ class BootCompletedReceiver : BroadcastReceiver(), KoinComponent {
                     } catch ( e: Exception) {
                         println(e)
                     } finally {
-                        println("Done...")
                         finish()
                         cancel()
                     }

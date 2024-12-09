@@ -28,9 +28,6 @@ class MainScreenViewmodel(
     val alarmList: StateFlow<List<Alarm>>
         get() = _alarmList.value
 
-    private val _eventFlow = MutableSharedFlow<UiEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
-
     fun onEvent(event: MainScreenEvents) {
         when(event) {
             is MainScreenEvents.ToggleAlarm -> {
@@ -54,8 +51,4 @@ class MainScreenViewmodel(
         }
     }
 
-}
-
-sealed class UiEvent {
-    data class ShowToast(val message: Int) : UiEvent()
 }

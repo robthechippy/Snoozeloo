@@ -16,11 +16,13 @@ class AlarmReceiver : BroadcastReceiver() {
         val message = intent?.getStringExtra("EXTRA_MESSAGE") ?: "Alarm"
         val thisAlarmId = intent?.getStringExtra("EXTRA_ID") ?: "-1"
         val alarmTime = intent?.getStringExtra("EXTRA_TIME") ?: "00:00"
+        val amPm =intent?.getStringExtra("EXTRA_AMPM") ?: "Am"
         val channelId = "alarm_id"
         val newIntent = Intent(context, AlarmScreen::class.java).apply {
             putExtra("EXTRA_ID", thisAlarmId)
             putExtra("EXTRA_MESSAGE", message)
             putExtra("EXTRA_TIME", alarmTime)
+            putExtra("EXTRA_AMPM", amPm)
         }
         val pendingIntent =
             PendingIntent.getActivity(

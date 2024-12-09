@@ -16,12 +16,15 @@ class AlarmSchedulerImpl(
 
     @SuppressLint("MissingPermission")
     override fun ScheduleAlarm(alarm: Alarm) {
-        val hr = if (alarm.hr24 < 10) "0${alarm.hr24}" else alarm.hr24.toString()
+        var hour = if (alarm.hr24 > 12) (alarm.hr24 - 12) else alarm.hr24
+        val amPm = if (alarm.hr24 >= 12) "Pm" else "Am"
+        val hr = if (hour < 10) "0${hour}" else hour.toString()
         val min = if (alarm.min < 10) "0${alarm.min}" else alarm.min.toString()
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("EXTRA_MESSAGE", alarm.title)
             putExtra("EXTRA_ID", alarm.id.toString())
             putExtra("EXTRA_TIME", "${hr}:${min}")
+            putExtra("EXTRA_AMPM", amPm)
         }
         val alarmTime = alarm.timeMillis
         alarmManager.setExactAndAllowWhileIdle(

@@ -1,34 +1,47 @@
 package com.rjprog.snoozeloo.alarm_screen.presentation
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.media.Ringtone
 import android.media.RingtoneManager
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.rjprog.snoozeloo.alarm_screen.domain.models.AlarmScreenState
 import com.rjprog.snoozeloo.core.domain.AlarmRepositoryInterface
 import com.rjprog.snoozeloo.core.domain.AlarmSchedulerInterface
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.parameter.parametersOf
-import org.koin.dsl.koinApplication
-import org.koin.java.KoinJavaComponent.inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 
 class AlarmScreenViewmodel(
     savedStateHandle: SavedStateHandle,
     private val repository: AlarmRepositoryInterface,
     private val alarmScheduler: AlarmSchedulerInterface,
-    private val context: Context
+    context: Context
 ): ViewModel() {
-    var ringtone: Ringtone? = null
+    private var ringtone: Ringtone? = null
+    private var alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+
     var close = mutableStateOf(false)
 
-    val alarmId = checkNotNull(savedStateHandle["EXTRA_ID"])
-    val message = checkNotNull(savedStateHandle["EXTRA_MESSAGE"])
-    val alarmTime = checkNotNull(savedStateHandle["EXTRA_TIME"])
+    private val _state = MutableStateFlow(AlarmScreenState())
+    val screenState = _state
+        .onStart {
+            _state.value = _state.value.copy(
+                alarmId = checkNotNull(savedStateHandle["EXTRA_ID"] ?: "-1"),
+                message = checkNotNull(savedStateHandle["EXTRA_MESSAGE"] ?: "Alarm!"),
+                alarmTime = checkNotNull(savedStateHandle["EXTRA_TIME"] ?: "00:00"),
+                amPm = checkNotNull(savedStateHandle["EXTRA_AMPM"] ?: "Am"),
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = _state.value
+        )
 
-    private val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 
     init {
         ringtone = RingtoneManager.getRingtone(context, alarmUri)

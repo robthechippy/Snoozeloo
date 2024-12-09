@@ -40,10 +40,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rjprog.snoozeloo.R
+import com.rjprog.snoozeloo.edit_alarm.Domain.Models.EditScreenState
 import com.rjprog.snoozeloo.edit_alarm.presentation.composables.AlarmEditBox
 import com.rjprog.snoozeloo.edit_alarm.presentation.composables.EditTitlePopup
+import com.rjprog.snoozeloo.ui.theme.SnoozelooTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -59,6 +62,20 @@ fun EditAlarmScreen(
 ) {
 
     val screenState = viewModel.screenState.collectAsState()
+
+    EditAlarmScreenActual(
+        screenState = screenState.value,
+        onEvent = viewModel::onEvent,
+        alarmSaved = alarmSaved
+    )
+}
+
+@Composable
+fun EditAlarmScreenActual(
+    screenState: EditScreenState,
+    onEvent: (EditAlarmScreenEvents) -> Unit,
+    alarmSaved: () -> Unit
+) {
     var currentTime by remember { mutableStateOf(Calendar.getInstance(TimeZone.getDefault())) }
 
     LaunchedEffect(true) {
@@ -86,19 +103,19 @@ fun EditAlarmScreen(
                     ) {
                         IconButton(
                             onClick = {
-                                viewModel.onEvent(EditAlarmScreenEvents.OnDeleteAlarm)
+                                onEvent(EditAlarmScreenEvents.OnDeleteAlarm)
                                 alarmSaved()
                             },
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (screenState.value.deleteEnabled) Color.Red else Color(
+                                    if (screenState.deleteEnabled) Color.Red else Color(
                                         0xFFE6E6E6
                                     )
                                 )
                                 .height(36.dp)
                                 .width(36.dp),
-                            enabled = screenState.value.deleteEnabled
+                            enabled = screenState.deleteEnabled
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -109,12 +126,12 @@ fun EditAlarmScreen(
                         Spacer(modifier = Modifier.weight(1f))
                         Button(
                             onClick = {
-                                viewModel.onEvent(EditAlarmScreenEvents.OnSaveAlarm)
+                                onEvent(EditAlarmScreenEvents.OnSaveAlarm)
                                 alarmSaved()
                             },
                             modifier = Modifier
                                 .padding(end = 16.dp),
-                            enabled = screenState.value.saveEnabled
+                            enabled = screenState.saveEnabled
                         ) {
                             Text(
                                 text = stringResource(R.string.save),
@@ -153,9 +170,9 @@ fun EditAlarmScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     AlarmEditBox(
-                        value = if (screenState.value.alarm.hr24 in 0..24) screenState.value.alarm.hr24.toString() else "",
+                        value = if (screenState.alarm.hr24 in 0..24) screenState.alarm.hr24.toString() else "",
                         onValueChange = { number ->
-                            viewModel.onEvent(EditAlarmScreenEvents.OnHourChanged(number))
+                            onEvent(EditAlarmScreenEvents.OnHourChanged(number))
                         }
                     )
 
@@ -167,19 +184,19 @@ fun EditAlarmScreen(
                         )
                     )
                     AlarmEditBox(
-                        value = if (screenState.value.alarm.min in 0..59) screenState.value.alarm.min.toString() else "",
+                        value = if (screenState.alarm.min in 0..59) screenState.alarm.min.toString() else "",
                         onValueChange = { number ->
-                            viewModel.onEvent(EditAlarmScreenEvents.OnMinChanged(number))
+                            onEvent(EditAlarmScreenEvents.OnMinChanged(number))
                         },
                         maxNumber = 59
                     )
                 }
-                if (screenState.value.saveEnabled) {
-                    var alarmInMin = screenState.value.alarm.min - currentTime.get(Calendar.MINUTE)
+                if (screenState.saveEnabled) {
+                    var alarmInMin = screenState.alarm.min - currentTime.get(Calendar.MINUTE)
                     if (alarmInMin < 0) {
                         alarmInMin += 60
                     }
-                    var alarmInHr = screenState.value.alarm.hr24 - currentTime.get(Calendar.HOUR_OF_DAY)
+                    var alarmInHr = screenState.alarm.hr24 - currentTime.get(Calendar.HOUR_OF_DAY)
                     if ((alarmInMin + currentTime.get(Calendar.MINUTE)) > 59) {
                         alarmInHr -= 1
                     }
@@ -213,38 +230,36 @@ fun EditAlarmScreen(
                         .weight(1f)
                 )
                 Text(
-                    text = screenState.value.alarm.title,
+                    text = screenState.alarm.title,
                     modifier = Modifier
-                        .clickable { viewModel.onEvent(EditAlarmScreenEvents.SetTitleChangeFlag(true)) },
+                        .clickable { onEvent(EditAlarmScreenEvents.SetTitleChangeFlag(true)) },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
 
         }
-        if (screenState.value.editName) {
+        if (screenState.editName) {
             EditTitlePopup(
-                name = screenState.value.alarm.title,
+                name = screenState.alarm.title,
                 onSaveChanges = { newName ->
-                    viewModel.onEvent(EditAlarmScreenEvents.OnTitleChanged(newName))
-                    viewModel.onEvent(EditAlarmScreenEvents.SetTitleChangeFlag(false))
+                    onEvent(EditAlarmScreenEvents.OnTitleChanged(newName))
+                    onEvent(EditAlarmScreenEvents.SetTitleChangeFlag(false))
                 },
-                onDismiss = { viewModel.onEvent(EditAlarmScreenEvents.SetTitleChangeFlag(false)) }
+                onDismiss = { onEvent(EditAlarmScreenEvents.SetTitleChangeFlag(false)) }
             )
         }
     }
 }
 
-//@Preview
-//@Composable
-//fun EditAlarmScreenPreview() {
-//    SnoozelooTheme {
-//        KoinApplication(application = {
-//            // your preview config here
-//            modules(listOf(dbModule,repoModule, viewModelModule))
-//        }) {
-//        EditAlarmScreen(
-//            alarmSaved = {}
-//        ) }
-//    }
-//}
+@Preview
+@Composable
+fun EditAlarmScreenPreview() {
+    SnoozelooTheme {
+        EditAlarmScreenActual(
+            screenState = EditScreenState(),
+            onEvent = {},
+            alarmSaved = {}
+        )
+    }
+}

@@ -33,7 +33,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 androidx-navigation = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigation"}
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation"}
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "json" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "json" }
 
 koin = { group ="io.insert-koin", name = "koin-androidx-compose", version.ref = "koinVersion"}
 koin-testing = { group ="io.insert-koin", name = "koin-test-junit4", version.ref = "koinVersion"}

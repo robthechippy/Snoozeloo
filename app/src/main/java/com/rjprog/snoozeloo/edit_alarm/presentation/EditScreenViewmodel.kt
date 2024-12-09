@@ -7,6 +7,7 @@ import com.rjprog.snoozeloo.core.domain.AlarmRepositoryInterface
 import com.rjprog.snoozeloo.core.domain.AlarmSchedulerInterface
 import com.rjprog.snoozeloo.core.domain.CheckIfTimePast
 import com.rjprog.snoozeloo.edit_alarm.Domain.Models.EditScreenState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -19,7 +20,7 @@ class EditScreenViewmodel(
     private val alarmScheduler: AlarmSchedulerInterface
 ) : ViewModel() {
 
-    var alarmId = checkNotNull(savedStateHandle.get<Long>("alarmId"))
+    private var alarmId = checkNotNull(savedStateHandle.get<Long>("alarmId"))
     private val _state = MutableStateFlow(EditScreenState())
     val screenState = _state
         .onStart {
@@ -96,11 +97,15 @@ class EditScreenViewmodel(
             }
 
             EditAlarmScreenEvents.OnSaveAlarm -> {
+                if (alarmId != 0L) {
+                    cancelPreviousAlarm(alarmId)
+                }
                 val alarmTime = CheckIfTimePast(screenState.value.alarm)
 
                 _state.value = screenState.value.copy(
                     alarm = screenState.value.alarm.copy(
-                        timeMillis = alarmTime.timeInMillis
+                        timeMillis = alarmTime.timeInMillis,
+                        enabled = true
                     )
                 )
                 viewModelScope.launch {
@@ -140,16 +145,24 @@ class EditScreenViewmodel(
         }
     }
 
+    private fun cancelPreviousAlarm(alarmId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val alarmToCancel = repository.getAlarmById(alarmId)
+            alarmScheduler.CancelAlarm(alarmToCancel)
+        }
+    }
+
     private fun loadData() {
         if (alarmId != 0L) {
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 val alarm = repository.getAlarmById(alarmId)
                 _state.value = screenState.value.copy(
                     alarm = alarm
                 )
             }
             _state.value = screenState.value.copy(
-                deleteEnabled = true)
+                deleteEnabled = true
+            )
         }
     }
 }

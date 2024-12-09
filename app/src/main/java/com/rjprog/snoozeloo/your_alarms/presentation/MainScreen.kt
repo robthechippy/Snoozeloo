@@ -41,9 +41,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rjprog.snoozeloo.R
+import com.rjprog.snoozeloo.core.domain.models.Alarm
+import com.rjprog.snoozeloo.ui.theme.SnoozelooTheme
 import com.rjprog.snoozeloo.your_alarms.presentation.composables.AlarmCard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -53,7 +56,6 @@ import org.koin.androidx.compose.koinViewModel
 import java.util.Calendar
 import java.util.TimeZone
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onFabClick: (Long) -> Unit,
@@ -61,34 +63,32 @@ fun MainScreen(
     viewModel: MainScreenViewmodel = koinViewModel()
 ) {
     val listItems by viewModel.alarmList.collectAsStateWithLifecycle()
+
+    MainScreenActual(
+        onFabClick = onFabClick,
+        onEditAlarm = onEditAlarm,
+        onEvent = viewModel::onEvent,
+        listItems = listItems
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreenActual(
+    onFabClick: (Long) -> Unit,
+    onEditAlarm: (Long) -> Unit,
+    onEvent:(MainScreenEvents) -> Unit,
+    listItems: List<Alarm>,
+) {
     var currentTime by remember { mutableStateOf(Calendar.getInstance(TimeZone.getDefault())) }
-    val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
+
+//    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(true) {
         withContext(Dispatchers.Default) {
             while (true) {
                 delay(1000L)
                 currentTime = Calendar.getInstance(TimeZone.getDefault())
-            }
-        }
-    }
-    LaunchedEffect(true) {
-        viewModel.eventFlow.collectLatest { event ->
-            when(event) {
-                is UiEvent.ShowToast -> {
-                    var toastText = ""
-                    toastText = when(event.message) {
-                        0 -> "Disableing alarm"
-                        1 -> "Enabling alarm"
-                        else -> "Unknown error"
-                    }
-                    Toast.makeText(
-                        context,
-                        toastText,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
             }
         }
     }
@@ -200,7 +200,7 @@ fun MainScreen(
                             alarm = it,
                             alarmIn = "Alarm in ${alarmInHr}Hr ${alarmInMin}min",
                             enabled = it.enabled,
-                            enableClick = { viewModel.onEvent(MainScreenEvents.ToggleAlarm(it)) },
+                            enableClick = { onEvent(MainScreenEvents.ToggleAlarm(it)) },
                             onCardClicked = { id ->
                                 onEditAlarm(id)
                             }
@@ -210,5 +210,18 @@ fun MainScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun MainScreenActualPreview() {
+    SnoozelooTheme {
+        MainScreenActual(
+            onFabClick = {},
+            onEditAlarm = {},
+            onEvent = {},
+            listItems = listOf()
+        )
     }
 }
